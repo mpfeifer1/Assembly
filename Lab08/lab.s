@@ -51,14 +51,20 @@ main:	stmfd	sp!, {lr}
 	ldr	r5, =hi		@ load hi
 	ldr	r5, [r5]	@ deref hi
 	
-	sub	r0, r5, r4	@ diff = hi - lo
-	ldr	r1, =rows	@ load rows as second parameter
-	ldr	r1, [r1]	@ deref rows
-	bl	sdiv32		@ divide
-	sub	r0, r0, #1
+	ldr	r0, =step	@ load step's address
+	sub	r0, r5, r4	@ diff = hi - lo	
+	lsl	r0, #16		@ convert to fixed pt
+
+	ldr	r0, =rows	@ load rows
+	lsl	r0, #16		@ convert to fixed
+
+	ldr	r0, =step	@ load step
+	ldr	r1, =rows	@ load rows
+	bl	sdiv32		@ divide (calculate actual step)
+	sub	r0, r0, #1	@ step -= 1
 	mov	r6, r0		@ save result to r6
 
-	ldr	r7, =lo		@ load low value into r7
+	ldr	r7, =lo		@ set low value as i
 	ldr	r7, [r7]	@ deref
 
 loop:	ldr	r0, =hi		@ load hi
