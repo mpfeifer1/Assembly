@@ -12,7 +12,7 @@ n:	.word	0
 
 
 
-
+	.text
 isPrime:			@ Takes in an int, returns 1 if prime, 0 if not
 	stmfd	sp!, {r4,r5,lr}
 	mov	r4, r0		@ r0 = n
@@ -71,7 +71,6 @@ quitdiv32:
 
 
 
-	.text
 	.globl	main
 main:	stmfd	sp!, {lr}
 	ldr	r0, =str1	@ Load string to print
