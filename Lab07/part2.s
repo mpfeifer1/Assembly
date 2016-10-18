@@ -11,6 +11,27 @@ str3:	.asciz	"Over four weeks you have collected %d pennies, %d nickels, %d dime
 
 
 	.text
+
+div4:	stmfd	sp!, {lr}	@@ takes in a number, returns it divided by 4
+
+	lsr	r0, r0, #2
+
+	ldmfd	sp!, {lr}
+	mov 	pc, lr
+
+
+
+mul13:	stmfd	sp!, {lr}	@@ Takes in a number, returns it multiplied by 13
+
+	add	r1, r0, r0, lsl #3	@ r1 = 8r0
+	add	r1, r1, r0, lsl #2	@ r1 += 4r0 (r1 is 12r0)
+	add	r0, r1, r1		@ r0 += r1
+
+	ldmfd	sp!, {lr}
+	mov	pc, lr
+
+
+
 	.globl	main
 main:	stmfd	sp!, {lr}
 	mov	r4, #0		@ pennies  = 0
@@ -18,6 +39,7 @@ main:	stmfd	sp!, {lr}
 	mov	r6, #0		@ dimes    = 0
 	mov	r7, #0		@ quarters = 0
 	mov	r8, #0		@ i = 0
+
 loop:	ldr	r0, =str1	@ load string to print
 	bl	scanf		@ print string
 	ldr	r0, =str2	@ load string to scan
@@ -32,6 +54,11 @@ loop:	ldr	r0, =str1	@ load string to print
 	cmp	r8, #3		@ i ? 3
 	ble	loop		@ i < 3 goto loop
 
-	mov	r0, =str3	@ load string to print
-end:	ldmfd	sp!, {lr}
+end:	mov	r0, =str3	@ load string to print
+	mov	r1, r4
+	mov	r2, r5
+	mov	r3, r6
+	
+
+	ldmfd	sp!, {lr}
 	mov	pc, lr
