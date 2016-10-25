@@ -13,10 +13,17 @@ str5:	.asciz	"Enter a number of rows: "
 	.align	2
 str6:	.asciz	"\n"
 	.align	2
-lo:	.word	0
-hi:	.word	0
-rows:	.word	0
-step:	.word	0
+
+lo:	.asciz	"0.0"
+	.align	2
+hi:	.asciz	"0.0"
+	.align	2
+rows:	.asciz	"0.0"
+	.align	2
+step:	.asciz	"0.0"
+	.align	2
+one:	.asciz	"1.0"
+	.align	2
 
 	.text
 	.globl	main
@@ -47,42 +54,57 @@ main:	stmfd	sp!, {lr}
 	bl	scanf		@ scan
 
 	ldr	r4, =lo		@ load lo
-	ldr	r4, [r4]	@ deref lo
 	ldr	r5, =hi		@ load hi
-	ldr	r5, [r5]	@ deref hi
-	
-	ldr	r0, =step	@ load step's address
-	lsl	r5, #16		@ convert hi to fixed
-	lsl	r4, #16		@ convert lo to fixed
-	sub	r0, r5, r4	@ diff = hi - lo
 
-	ldr	r0, =rows	@ load rows
-	lsl	r0, #16		@ convert to fixed
+	mov	r0, r4		@ make lo parameter 1
+	mov	r1, #16		@ 16 frac bits
+	bl	strtoSfixed	@ convert lo to fixed
+	mov	r4, r0		@ save lo into memory
 
-	ldr	r0, =step	@ load step
-	ldr	r1, =rows	@ load rows
+        mov     r0, r5          @ make hi parameter 1
+        mov     r1, #16         @ 16 frac bits
+        bl      strtoSfixed     @ convert lo to fixed
+        mov     r5, r0          @ save lo into memory
+
+	sub	r9, r5, r4	@ diff = hi - lo, save to r9
+
+	ldr	r0, =rows	@ load rows' address
+	mov	r1, #16		@ 16 frac bits
+	bl	strtoSfixed	@ convert to fixed
+	mov	r8, r0		@ save rows into r8	
+
+	mov	r0, r8		@ move rows to first parameter
+	mov	r1, r9		@ move diff to second parameter
 	bl	sdiv32		@ divide (calculate actual step)
-	mov	r2, #1		@ load 1
-	lsl	r2, r2, #16	@ convert to fixed
-	sub	r0, r0, r2	@ step -= 1
-	mov	r6, r0		@ save result to r6
+	mov	r6, r0		@ save step to r6
 
 	ldr	r7, =lo		@ set low value as i
 	ldr	r7, [r7]	@ deref
+
+        mov	r0, r6		@ print step
+        mov     r1, #16
+        bl      printS
+
+        ldr     r0, =str6       @ print newline
+        mov     r1, r7
+        bl      printf
+        ldr     r0, =str6       @ print newline
+        mov     r1, r7
+        bl      printf
 
 loop:	ldr	r0, =hi		@ load hi
 	ldr	r0, [r0]	@ deref hi
 	cmp	r7, r0		@ compare i to rows
 	bgt	end		@ if i > j, break
 
+	mov	r0, r7		@ print number
+	mov	r1, #0
+	bl	printS
+	
 	ldr	r0, =str6	@ print newline
 	mov	r1, r7
 	bl	printf
 
-	mov	r0, r7		@ print left hand number
-	mov	r1, #16
-	bl	printS
-	
 	add	r7, r7, r6	@ i += step
 	b	loop		@ goto loop
 
