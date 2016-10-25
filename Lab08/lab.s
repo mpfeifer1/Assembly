@@ -11,7 +11,7 @@ str4:	.asciz	"%d"
 	.align	2
 str5:	.asciz	"Enter a number of rows: "
 	.align	2
-str6:	.asciz	"%d\n"
+str6:	.asciz	"\n"
 	.align	2
 lo:	.word	0
 hi:	.word	0
@@ -52,8 +52,9 @@ main:	stmfd	sp!, {lr}
 	ldr	r5, [r5]	@ deref hi
 	
 	ldr	r0, =step	@ load step's address
-	sub	r0, r5, r4	@ diff = hi - lo	
-	lsl	r0, #16		@ convert to fixed pt
+	lsl	r5, #16		@ convert hi to fixed
+	lsl	r4, #16		@ convert lo to fixed
+	sub	r0, r5, r4	@ diff = hi - lo
 
 	ldr	r0, =rows	@ load rows
 	lsl	r0, #16		@ convert to fixed
@@ -61,7 +62,9 @@ main:	stmfd	sp!, {lr}
 	ldr	r0, =step	@ load step
 	ldr	r1, =rows	@ load rows
 	bl	sdiv32		@ divide (calculate actual step)
-	sub	r0, r0, #1	@ step -= 1
+	mov	r2, #1		@ load 1
+	lsl	r2, r2, #16	@ convert to fixed
+	sub	r0, r0, r2	@ step -= 1
 	mov	r6, r0		@ save result to r6
 
 	ldr	r7, =lo		@ set low value as i
@@ -72,14 +75,17 @@ loop:	ldr	r0, =hi		@ load hi
 	cmp	r7, r0		@ compare i to rows
 	bgt	end		@ if i > j, break
 
-	ldr	r0, =str6
+	ldr	r0, =str6	@ print newline
 	mov	r1, r7
 	bl	printf
 
+	mov	r0, r7		@ print left hand number
+	mov	r1, #16
+	bl	printS
 	
 	add	r7, r7, r6	@ i += step
 	b	loop		@ goto loop
-end:	
 
+end:	
 	ldmfd	sp!, {lr}
 	mov	pc, lr
