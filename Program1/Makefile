@@ -10,7 +10,8 @@
 CC = gcc
 OBJS = main.o readwriteImage.o helpers.o\
 	negateImage.o brightenImage.o sharpenImage.o \
-	smoothImage.o grayscaleImage.o contrastImage.o 
+	smoothImage.o grayscaleImage.o contrastImage.o \
+    colortogray.o
 INCLUDES = -I.
 LIBDIRS = 
 LIBS = 
