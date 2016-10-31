@@ -54,8 +54,7 @@ static funky_return_value gray_array(unsigned char **r,
 }
 
 
-
-/* Convert image to grayscale. */
+/*
 minMax grayscaleImage( netImage *image)
 {
   funky_return_value vals;
@@ -73,7 +72,6 @@ minMax grayscaleImage( netImage *image)
       break;
     case '2':
     case '4':
-      /* Already grayscale.  Do nothing but get the bounds. */
       vals.mm = get_bounds(image->gray.i,image->rows,image->cols);
       break;
     default:
@@ -82,8 +80,4 @@ minMax grayscaleImage( netImage *image)
     }
   return vals.mm;
 }
-
-  
-
-
-  
+*/

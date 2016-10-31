@@ -1,0 +1,4 @@
+*.o
+imagetool
+out.ppm
+tictac.ppm
