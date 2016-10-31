@@ -18,7 +18,8 @@ str6:	.asciz	"\n"
 	.align	2
 str7:	.asciz	"%d"
 	.align	2
-
+str8:	.asciz	"\t"
+	.align	2
 lo:	.asciz	"0.0"
 	.align	4
 
@@ -31,6 +32,51 @@ rows:	.word	0
 step:	.asciz	"0.0"
 	.align	4
 
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+	.text
+	.globl	calc
+calc:	@@ Calculates the really ugly thing. takes in x in r0, returns in r0
+	stmfd	sp!, {r4,r5,r6,r7,lr}
+
+	mov	r4, r0		@ r4 = x
+/*
+	mul	r5, r0, r0	@ r5 = x^2
+	lsr	r5, #8		@ correct
+	mul	r6, r5, r0	@ r6 = x^3
+	lsr	r6, #8		@ correct
+
+	add	r0, r0, r0	@ r0 = 2x
+
+	sub	r6, r6, r5	@ r6 = x^3-x^2
+	sub	r6, r6, r0	@ r6 = x^2-x^2-2x << Numerator
+*/
+	mov	r0, r4		@ r0 = x
+	mov	r1, #2		@ load 2
+	lsl	r1, #8		@ shift 2 left
+	sub	r0, r0, r1	@ r0 = x-2
+	mul	r0, r0, r0	@ r0 = (x-2)^2
+	lsr	r0, #8		@ correct
+	mul	r0, r0, r0	@ r0 = (x-2)^4
+	lsr	r0, #8		@ correct
+
+	mov	r1, #11		@ load 11
+	@lsl	r1, #8		@ shift 11 left
+	bl	sdiv32		@ r0 = (x-2)^4/11
+	mov	r1, #3		@ load 3
+	lsl	r1, #8		@ shift 3 left
+	add	r1, r0, r1	@ r1 = ((x-2)^4/11)+3 << Denominator
+	@mov	r0, r6		@ r0 = Numerator
+
+	@bl	sdiv32
+
+	mov	r0, r1		@ temporarily return denominator
+
+	ldmfd	sp!, {r4,r5,r6,r7,lr}
+	mov	pc, lr
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	.text
 	.globl	main
@@ -96,10 +142,21 @@ loop:	ldr	r1, =rows	@ load rows
 	cmp	r7, r1		@ compare i to rows
 	beq	end		@ if i = j, break
 
+	@ bl and calculate here
+
 	mov	r0, r4		@ print number
 	mov	r1, #8
 	bl	printS
 	
+        ldr     r0, =str8       @ print tab
+        bl      printf
+
+	mov	r0, r4		@ set number as input for calc
+	bl	calc		@ calculate ugly thing
+
+        mov     r1, #8		@ print processed number
+        bl      printS
+
 	ldr	r0, =str6	@ print newline
 	bl	printf
 
