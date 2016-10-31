@@ -74,7 +74,7 @@ main:	stmfd	sp!, {lr}
         ldr     r0, =hi         @ make hi parameter 1
         mov     r1, #8		@ 16 frac bits
         bl      strtoSfixed     @ convert lo to fixed
-        mov     r5, r0          @ save lo into memory
+        mov     r5, r0          @ save hi into memory
 
 	sub	r9, r5, r4	@ range = hi - lo, save to r9
 
@@ -86,41 +86,26 @@ main:	stmfd	sp!, {lr}
 
 	mov	r6, r0		@ save step
 
-	ldr	r7, =lo		@ set low value as i
-	ldr	r7, [r7]	@ deref
-
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@ debugging print
-
-        mov	r0, r6		@ print step
-        mov     r1, #8
-        bl      printS
-
-        ldr     r0, =str6       @ print newline
-        mov     r1, r7
-        bl      printf
-        ldr     r0, =str6       @ print newline
-        mov     r1, r7
-        bl      printf
-
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	mov	r7, #0		@ counter = 0
+				@ (lo is in r5)
+	
 @ loop through
 
-@loop:	ldr	r0, =hi		@ load hi
-@	ldr	r0, [r0]	@ deref hi
-@	cmp	r7, r0		@ compare i to rows
-@	bgt	end		@ if i > j, break
-@
-@	mov	r0, r7		@ print number
-@	mov	r1, #0
-@	bl	printS
-@	
-@	ldr	r0, =str6	@ print newline
-@	mov	r1, r7
-@	bl	printf
-@
-@	add	r7, r7, r6	@ i += step
-@	b	loop		@ goto loop
+loop:	ldr	r1, =rows	@ load rows
+	ldr	r1, [r1]	@ deref rows
+	cmp	r7, r1		@ compare i to rows
+	beq	end		@ if i = j, break
+
+	mov	r0, r4		@ print number
+	mov	r1, #8
+	bl	printS
+	
+	ldr	r0, =str6	@ print newline
+	bl	printf
+
+	add	r7, r7, #1	@ i++
+	add	r4, r4, r6	@ low += step
+	b	loop		@ goto loop
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @ cleanup
