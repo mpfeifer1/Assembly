@@ -1,5 +1,8 @@
 @@ This program makes a table for the really ugly function described in str1
 
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ define variables
+
 	.data
 str1:	.asciz	"This program will create a table for f(x) where\n     x^3-x^2-2x \nf(x)=-----------\n     (x-2)^4\n     ------- +3\n        11\n"
 	.align	2
@@ -7,27 +10,34 @@ str2:	.asciz	"Enter lower bound: "
 	.align	2
 str3:	.asciz	"Enter upper bound: "
 	.align	2
-str4:	.asciz	"%d"
+str4:	.asciz	"%s"
 	.align	2
 str5:	.asciz	"Enter a number of rows: "
 	.align	2
 str6:	.asciz	"\n"
 	.align	2
+str7:	.asciz	"%d"
+	.align	2
 
 lo:	.asciz	"0.0"
-	.align	2
+	.align	4
+
 hi:	.asciz	"0.0"
-	.align	2
-rows:	.asciz	"0.0"
-	.align	2
+	.align	4
+
+rows:	.word	0
+	.align	4
+
 step:	.asciz	"0.0"
-	.align	2
-one:	.asciz	"1.0"
-	.align	2
+	.align	4
+
 
 	.text
 	.globl	main
 main:	stmfd	sp!, {lr}
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ get input
 
 	ldr	r0, =str1	@ load string to print
 	bl	printf		@ print string
@@ -49,40 +59,41 @@ main:	stmfd	sp!, {lr}
 	ldr	r0, =str5	@ load row prompt
 	bl	printf		@ print
 
-	ldr	r0, =str4	@ load string to scan
+	ldr	r0, =str7	@ load string to scan
 	ldr	r1, =rows	@ load rows
 	bl	scanf		@ scan
 
-	ldr	r4, =lo		@ load lo
-	ldr	r5, =hi		@ load hi
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ calculate step
 
-	mov	r0, r4		@ make lo parameter 1
-	mov	r1, #16		@ 16 frac bits
+	ldr	r0, =lo		@ make lo parameter 1
+	mov	r1, #8		@ 16 frac bits
 	bl	strtoSfixed	@ convert lo to fixed
 	mov	r4, r0		@ save lo into memory
 
-        mov     r0, r5          @ make hi parameter 1
-        mov     r1, #16         @ 16 frac bits
+        ldr     r0, =hi         @ make hi parameter 1
+        mov     r1, #8		@ 16 frac bits
         bl      strtoSfixed     @ convert lo to fixed
         mov     r5, r0          @ save lo into memory
 
-	sub	r9, r5, r4	@ diff = hi - lo, save to r9
+	sub	r9, r5, r4	@ range = hi - lo, save to r9
 
-	ldr	r0, =rows	@ load rows' address
-	mov	r1, #16		@ 16 frac bits
-	bl	strtoSfixed	@ convert to fixed
-	mov	r8, r0		@ save rows into r8	
-
-	mov	r0, r8		@ move rows to first parameter
-	mov	r1, r9		@ move diff to second parameter
+	ldr	r1, =rows	@ load rows' address as second parameter
+	ldr	r1, [r1]	@ deref rows
+	sub	r1, r1, #1	@ decrement rows
+	mov	r0, r9		@ move diff to first parameter
 	bl	sdiv32		@ divide (calculate actual step)
-	mov	r6, r0		@ save step to r6
+
+	mov	r6, r0		@ save step
 
 	ldr	r7, =lo		@ set low value as i
 	ldr	r7, [r7]	@ deref
 
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ debugging print
+
         mov	r0, r6		@ print step
-        mov     r1, #16
+        mov     r1, #8
         bl      printS
 
         ldr     r0, =str6       @ print newline
@@ -92,21 +103,27 @@ main:	stmfd	sp!, {lr}
         mov     r1, r7
         bl      printf
 
-loop:	ldr	r0, =hi		@ load hi
-	ldr	r0, [r0]	@ deref hi
-	cmp	r7, r0		@ compare i to rows
-	bgt	end		@ if i > j, break
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ loop through
 
-	mov	r0, r7		@ print number
-	mov	r1, #0
-	bl	printS
-	
-	ldr	r0, =str6	@ print newline
-	mov	r1, r7
-	bl	printf
+@loop:	ldr	r0, =hi		@ load hi
+@	ldr	r0, [r0]	@ deref hi
+@	cmp	r7, r0		@ compare i to rows
+@	bgt	end		@ if i > j, break
+@
+@	mov	r0, r7		@ print number
+@	mov	r1, #0
+@	bl	printS
+@	
+@	ldr	r0, =str6	@ print newline
+@	mov	r1, r7
+@	bl	printf
+@
+@	add	r7, r7, r6	@ i += step
+@	b	loop		@ goto loop
 
-	add	r7, r7, r6	@ i += step
-	b	loop		@ goto loop
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ cleanup
 
 end:	
 	ldmfd	sp!, {lr}
