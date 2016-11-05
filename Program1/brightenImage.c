@@ -4,13 +4,15 @@
 #include <netImage.h>
 #include <helpers.h>
 
-static void brighten_array(unsigned char **a,int rows,int cols,int factor)
+void brighten_array(unsigned char **a,int rows,int cols,int factor);
+/*
 {
   int i,j;
   for( i=0; i<rows; i++)
     for( j=0; j<cols; j++)
       a[i][j] = saturate(a[i][j] + factor);
 }
+*/
 
 /* brighten the image */
 void brightenImage( netImage *image, int factor)

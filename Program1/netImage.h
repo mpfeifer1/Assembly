@@ -37,7 +37,7 @@ typedef struct
 netImage *readImage(FILE *inf);
 void writeImage(FILE *inf, netImage *image);
 
-void negateImage( netImage *image);
+//void negateImage( netImage *image);
 void brightenImage( netImage *image, int factor);
 void sharpenImage( netImage *image);
 void smoothImage( netImage *image);

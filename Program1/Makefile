@@ -8,10 +8,10 @@
 
 
 CC = gcc
-OBJS = main.o readwriteImage.o helpers.o\
+OBJS =  readwriteImage.o helpers.o\
 	negateImage.o brightenImage.o sharpenImage.o \
 	smoothImage.o grayscaleImage.o contrastImage.o \
-    colortogray.o
+	netpbm.o program.o main.o
 INCLUDES = -I.
 LIBDIRS = 
 LIBS = 

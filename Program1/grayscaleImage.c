@@ -53,8 +53,6 @@ static funky_return_value gray_array(unsigned char **r,
   return vals;
 }
 
-
-/*
 minMax grayscaleImage( netImage *image)
 {
   funky_return_value vals;
@@ -80,4 +78,3 @@ minMax grayscaleImage( netImage *image)
     }
   return vals.mm;
 }
-*/

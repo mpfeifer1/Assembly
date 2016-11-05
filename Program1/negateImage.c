@@ -3,13 +3,15 @@
 #include <netImage.h>
 #include <helpers.h>
 
-static void negate_array(unsigned char **a,int rows,int cols)
+void negate_array(unsigned char **a,int rows,int cols);
+/*
 {
   int i,j;
   for( i=0; i<rows; i++)
     for( j=0; j<cols; j++)
       a[i][j] = saturate(255 - a[i][j]);
 }
+*/
 
 /* negate the image */
 void negateImage( netImage *image)
