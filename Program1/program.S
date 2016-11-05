@@ -51,7 +51,7 @@ brighten_array:   @@ Takes in a netImage pointer by reference, rows, col, and fa
         mov     r6, r1          @ r6 = rows
         mov     r7, r2          @ r7 = cols
         mov     r8, r0          @ r8 = pointer to image
-	mov	r9, r3
+	mov	r9, r3		@ r9 = brightness
 
 loop03: cmp     r4, r6          @ i == rows
         beq     end03           @ quit
@@ -77,4 +77,101 @@ end04:
 end03:
         ldmfd   sp!, {r4, r5, r6, r7, r8, r9, lr}
         mov     pc, lr
+
+
+
+        .text
+        .globl  sharpen_array
+sharpen_array:   @@ Takes in a netImage pointer by reference, rows, col. Returns pointer to image
+        stmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+
+        mov     r4, #1          	@ r4 = i = 1
+        mov     r5, #1          	@ r5 = j = 1
+        mov     r6, r1          	@ r6 = rows
+        mov     r7, r2          	@ r7 = cols
+        mov     r8, r0       	   	@ r8 = a
+
+	mov	r0, r1			@ r0 = rows
+	mov	r1, r2			@ r1 = cols
+	bl	allocate_pixel_array	@ make new array
+	mov	r9, r0			@ r9 = tmp
+
+	sub	r6, r6, #1		@ rows--
+	sub	r7, r7, #1		@ cols--
+
+loop05: cmp     r4, r6          	@ i == rows
+        beq     end05           	@ quit
+
+        mov     r5, #1          	@ j = 1
+loop06: cmp     r5, r7          	@ j == cols
+        beq     end06           	@ quit
+
+	mov	r10, #0			@ total = 0
+
+	add	r4, r4, #1		@ i++
+        ldr     r0, [r8, r4, lsl #2]    @ load row of pointers to pixels (a[i+1])
+        ldrb    r0, [r0, r5]            @ load a[i+1][j]
+	sub	r4, r4, #1		@ i--
+	add	r10, r10, r0		@ total += a[i+1][j]
+
+        sub     r4, r4, #1              @ i--
+        ldr     r0, [r8, r4, lsl #2]    @ load row of pointers to pixels (a[i-1])
+        ldrb    r0, [r0, r5]            @ load a[i-1][j]
+        add     r4, r4, #1              @ i++
+        add     r10, r10, r0            @ total += a[i-1][j]
+
+        add     r5, r5, #1              @ j++
+        ldr     r0, [r8, r4, lsl #2]    @ load row of pointers to pixels (a[i])
+        ldrb    r0, [r0, r5]            @ load a[i][j+1]
+        sub     r5, r5, #1              @ j--
+        add     r10, r10, r0            @ total += a[i][j+1]
+
+        sub     r5, r5, #1              @ j--
+        ldr     r0, [r8, r4, lsl #2]    @ load row of pointers to pixels (a[i])
+        ldrb    r0, [r0, r5]            @ load a[i][j-1]
+        add     r5, r5, #1              @ j++
+        add     r10, r10, r0            @ total += a[i][j-1]
+
+	ldr     r0, [r9, r4, lsl #2]    @ load row of pointers to pixels (tmp[i])
+        ldrb    r0, [r0, r5]            @ load tmp[i][j]
+	add	r0, r0, r0, lsl #2	@ tmp[i][j] += 4tmp[i][j]
+	sub	r0, r0, r10		@ 5tmp[i][j] -= total
+        bl      saturate                @ saturate
+
+        ldr     r1, [r9, r4, lsl #2]    @ load row of pointers to pixels (tmp[i])
+        strb    r0, [r1, r5]            @ store tmp[i][j]
+
+        add     r5, r5, #1              @ j++
+        b       loop06                  @ to top of loop
+end06:
+        add     r4, r4, #1              @ i++
+        b       loop05                  @ to top of loop
+end05:
+/*
+	ldr	r0, [r8, #0]		@ load a[0]
+	ldrb	r0, [r0, #0]		@ load a[0][0]
+	
+	ldr	r1, [r8, #0]		@ load a[0]
+	ldrb	r1, [r1, #1]		@ load a[0][1]
+        
+	ldr     r2, [r8, #1]            @ load a[1]
+        ldrb    r2, [r2, #0]            @ load a[1][0]
+	
+	add	r0, r0, r0		@ a[0][0] *= 2
+	sub	r0, r0, r1		@ subtract a[0][1]
+	sub	r0, r0, r2		@ subtract a[1][0]
+	bl	saturate		@ saturate
+        ldr     r1, [r9, #0]    	@ load row of pointers to pixels (tmp[0])
+        strb    r0, [r1, #0]            @ store tmp[0][0]
+*/
+
+	mov	r0, r8			@ delete a
+	mov	r1, r4
+	add	r1, r1, #1
+	bl	free_pixel_array
+
+	mov	r0, r9			@ return tmp
+        ldmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+        mov     pc, lr
+
 
