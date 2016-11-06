@@ -41,6 +41,8 @@ end01:
 
 
 
+
+
         .text
         .globl  brighten_array
 brighten_array:   @@ Takes in a netImage pointer by reference, rows, col, and factor. No return value
@@ -77,6 +79,8 @@ end04:
 end03:
         ldmfd   sp!, {r4, r5, r6, r7, r8, r9, lr}
         mov     pc, lr
+
+
 
 
 
@@ -309,6 +313,8 @@ end08:
 	mov	r0, r9			@ return tmp
         ldmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
         mov     pc, lr
+
+
 
 
 
@@ -621,6 +627,8 @@ end12:
 
 
 
+
+
 	.text
 	.globl divByNine
 divByNine:
@@ -628,6 +636,10 @@ divByNine:
 	smull	r0, r1, r0, r1
 	lsr	r0, r1, #2
 	mov	pc, lr
+
+
+
+
 
 	.text
 	.globl divByTwelve
