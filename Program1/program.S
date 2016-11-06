@@ -413,6 +413,208 @@ end09:
 	ldr	r1, [r9, #0]		@ load tmp[0]
 	strb	r0, [r1, #0]		@ store into tmp[0][0]
 
+	ldr	r2, [r8, #0]		@ load a[0]
+	ldrb	r2, [r2, r7]		@ load a[0][cols]
+	lsl	r2, r2, #2		@ multiply by 4
+	ldr	r1, [r8, #4]		@ load a[1]
+	ldrb	r1, [r1, r7]		@ load a[1][cols]
+	sub	r7, r7, #1		@ cols--
+	ldr	r0, [r8, #0]		@ load a[0]
+	ldrb	r0, [r0, r7]		@ load a[0][cols-1]
+	add	r1, r1, r0		@ add up
+	lsl	r1, r1, #1		@ multiply by 2
+	add	r2, r2, r1		@ add up
+	ldr	r0, [r8, #4]		@ load a[1]
+	ldrb	r0, [r0, r7]		@ load a[1][cols-1]
+	add	r7, r7, #1		@ cols++
+	add	r0, r2, r0		@ add up
+	bl	divByNine		@ divide by 9
+	ldr	r1, [r9, #0]		@ load tmp[0]
+	strb	r0, [r1, r7]		@ store into tmp[0][cols]
+
+	ldr	r2, [r8, r6, lsl #2]	@ load a[rows]
+	ldrb	r2, [r2, #0]		@ load a[rows][0]
+	lsl	r2, r2, #2		@ multiply by 4
+	ldr	r1, [r8, r6, lsl #2]	@ load a[rows]
+	ldrb	r1, [r1, #1]		@ load a[rows][1]
+	sub	r6, r6, #1		@ rows--
+	ldr	r0, [r8, r6, lsl #2]	@ load a[rows-1]
+	ldrb	r0, [r0, #0]		@ load a[rows-1][0]
+	add	r1, r1, r0		@ add up
+	lsl	r1, r1, #1		@ multiply by 2
+	add	r2, r2, r1		@ add up
+	ldr	r0, [r8, r6, lsl #2]	@ load a[rows-1]
+	ldrb	r0, [r0, #1]		@ load a[rows-1][1]
+	add	r6, r6, #1		@ rows++
+	add	r0, r2, r0		@ add up
+	bl	divByNine		@ divide by 9
+	ldr	r1, [r9, r6, lsl #2]	@ load tmp[rows]
+	strb	r0, [r1, #0]		@ store into tmp[rows][0]
+
+	ldr	r2, [r8, r6, lsl #2]	@ load a[rows]
+	ldrb	r2, [r2, r7]		@ load a[rows][cols]
+	lsl	r2, r2, #2		@ multiply by 4
+	sub	r6, r6, #1		@ rows--
+	ldr	r1, [r8, r6, lsl #2]	@ load a[rows-1]
+	ldrb	r1, [r1, r7]		@ load a[rows-1][cols]
+	add	r6, r6, #1		@ rows++
+	sub	r7, r7, #1		@ cols--
+	ldr	r0, [r8, r6, lsl #2]	@ load a[rows]
+	ldrb	r0, [r0, r7]		@ load a[rows][cols-1]
+	add	r1, r1, r0		@ add up
+	lsl	r1, r1, #1		@ multiply by 2
+	add	r2, r2, r1		@ add up
+	sub	r6, r6, #1		@ rows--
+	ldr	r0, [r8, r6, lsl #2]	@ load a[rows-1]
+	ldrb	r0, [r0, r7]		@ load a[rows-1][cols-1]
+	add	r6, r6, #1		@ rows++
+	add	r7, r7, #1		@ cols++
+	add	r0, r2, r0		@ add up
+	bl	divByNine		@ divide by 9
+	ldr	r1, [r9, r6, lsl #2]	@ load tmp[rows]
+	strb	r0, [r1, r7]		@ store into tmp[rows][cols]
+
+	mov	r4, #1			@ i = 1
+loop11: cmp     r4, r6          	@ i == rows
+        beq     end11           	@ quit
+
+	ldr	r3, [r8, r4, lsl #2]	@ load a[i]
+	ldrb	r3, [r3, #0]		@ load a[i][0]
+	lsl	r3, r3, #2		@ multiply by 4
+	sub	r4, r4, #1		@ i--
+	ldr	r2, [r8, r4, lsl #2]	@ load a[i-1]
+	ldrb	r2, [r2, #0]		@ load a[i-1][0]
+	add	r4, r4, #1		@ i++
+	ldr	r1, [r8, r4, lsl #2]	@ load a[i]
+	ldrb	r1, [r1, #1]		@ load a[i][1]
+	add	r2, r2, r1		@ add up
+	add	r4, r4, #1		@ i++
+	ldr	r1, [r8, r4, lsl #2]	@ load a[i+1]
+	ldrb	r1, [r1, #0]		@ load a[i+1][0]
+	add	r2, r2, r1		@ add up
+	lsl	r2, r2, #1		@ multiply by 2
+	add	r3, r3, r2		@ add up
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i+1]
+	ldrb	r0, [r0, #1]		@ load a[i+1][1]
+	add	r3, r3, r0		@ add up
+	sub	r4, r4, #2		@ i-=2
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i-1]
+	ldrb	r0, [r0, #1]		@ load a[i-1][1]
+	add	r4, r4, #1		@ i++
+	add	r0, r3, r0		@ add up
+	bl	divByTwelve		@ divide by 9
+	ldr	r1, [r9, r4, lsl #2]	@ load tmp[i]
+	strb	r0, [r1, #0]		@ store into tmp[i][0]
+
+	ldr	r3, [r8, r4, lsl #2]	@ load a[i]
+	ldrb	r3, [r3, r7]		@ load a[i][cols]
+	lsl	r3, r3, #2		@ multiply by 4
+	sub	r4, r4, #1		@ i--
+	ldr	r2, [r8, r4, lsl #2]	@ load a[i-1]
+	ldrb	r2, [r2, r7]		@ load a[i-1][cols]
+	sub	r7, r7, #1		@ cols--
+	add	r4, r4, #1		@ i++
+	ldr	r1, [r8, r4, lsl #2]	@ load a[i]
+	ldrb	r1, [r1, r7]		@ load a[i][cols-1]
+	add	r2, r2, r1		@ add up
+	add	r7, r7, #1		@ cols++
+	add	r4, r4, #1		@ i++
+	ldr	r1, [r8, r4, lsl #2]	@ load a[i+1]
+	ldrb	r1, [r1, r7]		@ load a[i+1][cols]
+	add	r2, r2, r1		@ add up
+	lsl	r2, r2, #1		@ multiply by 2
+	add	r3, r3, r2		@ add up
+	sub	r7, r7, #1		@ cols--
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i+1]
+	ldrb	r0, [r0, r7]		@ load a[i+1][cols-1]
+	add	r3, r3, r0		@ add up
+	sub	r4, r4, #2		@ i-=2
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i-1]
+	ldrb	r0, [r0, #1]		@ load a[i-1][cols-1]
+	add	r7, r7, #1		@ cols++
+	add	r4, r4, #1		@ i++
+	add	r0, r3, r0		@ add up
+	bl	divByTwelve		@ divide by 9
+	ldr	r1, [r9, r4, lsl #2]	@ load tmp[i]
+	strb	r0, [r1, r7]		@ store into tmp[i][cols]
+
+        add     r4, r4, #1              @ i++
+        b       loop11                  @ to top of loop
+end11:
+
+	mov	r4, #1			@ i = 1
+loop12: cmp     r4, r7          	@ i == cols
+        beq     end12           	@ quit
+
+	ldr	r3, [r8, #0]		@ load a[0]
+	ldrb	r3, [r3, r4]		@ load a[0][i]
+	lsl	r3, r3, #2		@ multiply by 4
+	sub	r4, r4, #1		@ i--
+	ldr	r2, [r8, #0]		@ load a[0]
+	ldrb	r2, [r2, r4]		@ load a[0][i-1]
+	add	r4, r4, #1		@ i++
+	ldr	r1, [r8, #4]		@ load a[1]
+	ldrb	r1, [r1, r4]		@ load a[1][i]
+	add	r2, r2, r1		@ add up
+	add	r4, r4, #1		@ i++
+	ldr	r1, [r8, #0]		@ load a[0]
+	ldrb	r1, [r1, r4]		@ load a[0][i+1]
+	add	r2, r2, r1		@ add up
+	lsl	r2, r2, #1		@ multiply by 2
+	add	r3, r3, r2		@ add up
+	ldr	r0, [r8, #4]		@ load a[1]
+	ldrb	r0, [r0, r4]		@ load a[1][i+1]
+	add	r3, r3, r0		@ add up
+	sub	r4, r4, #2		@ i-=2
+	ldr	r0, [r8, #4]		@ load a[1]
+	ldrb	r0, [r0, r4]		@ load a[1][i-1]
+	add	r4, r4, #1		@ i++
+	add	r0, r3, r0		@ add up
+	bl	divByTwelve		@ divide by 9
+	ldr	r1, [r9, #0]		@ load tmp[0]
+	strb	r0, [r1, r4]		@ store into tmp[0][i]
+
+	ldr	r3, [r8, r6, lsl #2]	@ load a[rows]
+	ldrb	r3, [r3, r4]		@ load a[rows][i]
+	lsl	r3, r3, #2		@ multiply by 4
+	sub	r4, r4, #1		@ i--
+	ldr	r2, [r8, r6, lsl #2]	@ load a[rows]
+	ldrb	r2, [r2, r4]		@ load a[rows][i-1]
+	add	r4, r4, #1		@ i++
+	sub	r6, r6, #1		@ rows--
+	ldr	r1, [r8, r6, lsl #2]	@ load a[rows-1]
+	ldrb	r1, [r1, r4]		@ load a[rows-1][i]
+	add	r6, r6, #1		@ rows++
+	add	r2, r2, r1		@ add up
+	add	r4, r4, #1		@ i++
+	ldr	r1, [r8, r6, lsl #2]	@ load a[rows]
+	ldrb	r1, [r1, r4]		@ load a[rows][i+1]
+	add	r2, r2, r1		@ add up
+	lsl	r2, r2, #1		@ multiply by 2
+	add	r3, r3, r2		@ add up
+	sub	r6, r6, #1		@ rows--
+	ldr	r0, [r8, r6, lsl #2]	@ load a[rows-1]
+	ldrb	r0, [r0, r4]		@ load a[rows-1][i+1]
+	add	r3, r3, r0		@ add up
+	sub	r4, r4, #2		@ i-=2
+	ldr	r0, [r8, r6, lsl #2]	@ load a[rows-1]
+	ldrb	r0, [r0, r4]		@ load a[rows-1][i-1]
+	add	r6, r6, #1		@ rows++
+	add	r4, r4, #1		@ i++
+	add	r0, r3, r0		@ add up
+	bl	divByTwelve		@ divide by 9
+	ldr	r1, [r9, r6, lsl #2]	@ load tmp[rows]
+	strb	r0, [r1, r4]		@ store into tmp[rows][i]
+
+        add     r4, r4, #1              @ i++
+        b       loop12                  @ to top of loop
+end12:
+
+	mov	r0, r8			@ delete a
+	mov	r1, r6
+	add	r1, r1, #1
+	bl	free_pixel_array
+
 	mov	r0, r9			@ return modified image
         ldmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
         mov     pc, lr
