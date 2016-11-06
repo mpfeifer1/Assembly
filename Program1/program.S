@@ -311,3 +311,126 @@ end08:
         mov     pc, lr
 
 
+
+        .text
+        .globl  smooth_array
+smooth_array:   @@ Takes in a netImage pointer by reference, rows, col. Returns pointer to image
+        stmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+
+        mov     r4, #1          	@ r4 = i = 1
+        mov     r5, #1          	@ r5 = j = 1
+        mov     r6, r1          	@ r6 = rows
+        mov     r7, r2          	@ r7 = cols
+        mov     r8, r0       	   	@ r8 = a
+
+	mov	r0, r1			@ r0 = rows
+	mov	r1, r2			@ r1 = cols
+	bl	allocate_pixel_array	@ make new array
+	mov	r9, r0			@ r9 = tmp
+
+	sub	r6, r6, #1		@ rows--
+	sub	r7, r7, #1		@ cols--
+
+
+loop09:	cmp	r4, r6		@ i == rows
+	beq	end09		@ quit
+
+	mov	r5, #1		@ j = 1
+loop10:	cmp	r5, r7		@ j == cols
+	beq	end10		@ quit
+
+	ldr	r2, [r8, r4, lsl #2]	@ load a[i]
+	ldrb	r2, [r2, r5]		@ load a[i][j]
+	lsl	r2, r2, #2		@ a[i][j] *= 4
+
+	sub	r4, r4, #1		@ i--
+	ldr	r1, [r8, r4, lsl #2]	@ load a[i-1]
+	ldrb	r1, [r1, r5]		@ load a[i-1][j]
+	add	r4, r4, #2		@ i+=2
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i+1]
+	ldrb	r0, [r0, r5]		@ load a[i+1][j]
+	add	r1, r1, r0		@ add in
+	sub	r4, r4, #1		@ i--
+	sub	r5, r5, #1		@ j--
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i]
+	ldrb	r0, [r0, r5]		@ load a[i][j-1]
+	add	r1, r1, r0		@ add in
+	add	r5, r5, #2		@ j+=2
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i]
+	ldrb	r0, [r0, r5]		@ load a[i][j+1]
+	sub	r5, r5, #1		@ j--
+	add	r1, r1, r0		@ add in
+
+	lsl	r1, r1, #1		@ multiply by 2
+	add	r2, r2, r1		@ add to total
+
+	sub	r4, r4, #1		@ i--
+	sub	r5, r5, #1		@ j--
+	ldr	r1, [r8, r4, lsl #2]	@ load a[i-1]
+	ldrb	r1, [r1, r5]		@ load a[i-1][j-1]
+	add	r4, r4, #2		@ i+=2
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i+1]
+	ldrb	r0, [r0, r5]		@ load a[i+1][j-1]
+	add	r1, r1, r0		@ add in
+	add	r5, r5, #2		@ j+=2
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i+1]
+	ldrb	r0, [r0, r5]		@ load a[i+1][j+1]
+	add	r1, r1, r0		@ add in
+	sub	r4, r4, #2		@ i-=2
+	ldr	r0, [r8, r4, lsl #2]	@ load a[i-1]
+	ldrb	r0, [r0, r5]		@ load a[i-1][j+1]
+	add	r4, r4, #1		@ i++
+	sub	r5, r5, #1		@ j--
+	add	r1, r1, r0		@ add in
+
+	add	r0, r2, r1		@ add to total
+	lsr	r0, r0, #4		@ divide by sixteen
+	bl	saturate		@ saturate
+	ldr	r1, [r9, r4, lsl #2]	@ load tmp[i]
+	strb	r0, [r1, r5]		@ store into tmp[i][j]
+
+	add	r5, r5, #1		@ j++
+	b	loop10			@ to top of loop
+end10:
+	add	r4, r4, #1		@ i++
+	b	loop09			@ to top of loop
+end09:
+
+	ldr	r2, [r8, #0]		@ load a[0]
+	ldrb	r2, [r2, #0]		@ load a[0][0]
+	lsl	r2, r2, #2		@ multiply by 4
+	ldr	r1, [r8, #4]		@ load a[1]
+	ldrb	r1, [r1, #0]		@ load a[1][0]
+	ldr	r0, [r8, #0]		@ load a[0]
+	ldrb	r0, [r0, #1]		@ load a[0][1]
+	add	r1, r1, r0		@ add up
+	lsl	r1, r1, #1		@ multiply by 2
+	add	r2, r2, r1		@ add up
+	ldr	r0, [r8, #4]		@ load a[1]
+	ldrb	r0, [r0, #1]		@ load a[1][1]
+	add	r0, r2, r0		@ add up
+	bl	divByNine		@ divide by 9
+	ldr	r1, [r9, #0]		@ load tmp[0]
+	strb	r0, [r1, #0]		@ store into tmp[0][0]
+
+	mov	r0, r9			@ return modified image
+        ldmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+        mov     pc, lr
+
+
+
+	.text
+	.globl divByNine
+divByNine:
+	ldr	r1, =0x71C71C72
+	smull	r0, r1, r0, r1
+	lsr	r0, r1, #2
+	mov	pc, lr
+
+	.text
+	.globl divByTwelve
+divByTwelve:
+	ldr	r1, =0x55555556
+	smull	r0, r1, r0, r1
+	lsr	r0, r1, #2
+	mov	pc, lr

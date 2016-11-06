@@ -7,66 +7,66 @@
 
 /* Apply the smooth mask to create a new array.  Free the original
    and return the new array */
-static unsigned char **smooth_array( unsigned char **a, int rows,int cols)
+unsigned char **smooth_array( unsigned char **a, int rows,int cols);
+/*
 {
   int i,j,sum;
   unsigned char **tmp;
 
   tmp = allocate_pixel_array(rows,cols);
 
-  for( i=1; i<rows-1; i++)
-    for( j=1; j<cols -1; j++ )
+  rows--;
+  cols--;
+
+  for( i=1; i< rows; i++)
+    for( j=1; j< cols; j++ )
       {
 	sum = 4*(int)a[i][j] +
-	  2*((int)a[i-1][j]+a[i+1][j]+a[i][j-1]+a[i][j+1])+ 
-	  ((int)a[i-1][j-1]+a[i+1][j-1]+a[i+1][j-1]+a[i+1][j+1]);
+	  2*((int)a[i-1][j]   + a[i+1][j]   + a[i][j-1]   + a[i][j+1])+ 
+	    ((int)a[i-1][j-1] + a[i-1][j+1] + a[i+1][j-1] + a[i+1][j+1]);
 	
 	tmp[i][j] = saturate(sum/16);
       }
   
-  /* fix up the corners */
   tmp[0][0] = (4*(int)a[0][0] + 2*(a[1][0]+a[0][1]) + a[1][1])/9;
 
-  tmp[0][cols-1] = (4*(int)a[0][cols-1] +
-		    2*((int)a[1][cols-1]+a[0][cols-2]) + a[1][cols-2])/9;
+  tmp[0][cols] = (4*(int)a[0][cols] +
+		    2*((int)a[1][cols]+a[0][cols-1]) + a[1][cols-1])/9;
 
-  tmp[rows-1][0] = (4*(int)a[rows-1][0] +
-		    2*((int)a[rows-2][0]+a[rows-1][1]) + a[rows-2][1])/9;
+  tmp[rows][0] = (4*(int)a[rows][0] +
+		    2*((int)a[rows-1][0]+a[rows][1]) + a[rows-1][1])/9;
 
-  tmp[rows-1][cols-1] = (4*(int)a[rows-1][cols-1] +
-			 2*((int)a[rows-2][cols-1]+a[rows-1][cols-2]) +
-			 a[rows-2][cols-2])/9;
+  tmp[rows][cols] = (4*(int)a[rows][cols] +
+			 2*((int)a[rows-1][cols]+a[rows][cols-1]) +
+			 a[rows-1][cols-1])/9;
 
-
-  /* fix up the vertical borders */
-  for(i=1;i<rows-1;i++)
+  for(i=1;i<rows;i++)
     {    
       tmp[i][0] = (4*(int)a[i][0] +
 		   2*((int)a[i-1][0] + a[i][1] + a[i+1][0])+
 		   ((int)a[i-1][1] + a[i+1][1]))/12;
       
-      tmp[i][cols-1] = (4*(int)a[i][cols-1] +
-			2*((int)a[i-1][cols-1] + a[i][cols-2] + a[i+1][cols-1])+
-			((int)a[i-1][cols-2] + a[i+1][cols-2]))/12;
+      tmp[i][cols] = (4*(int)a[i][cols] +
+			2*((int)a[i-1][cols] + a[i][cols-1] + a[i+1][cols])+
+			((int)a[i-1][cols-1] + a[i+1][cols-1]))/12;
     }
   
-  /* fix up the horizontal borders */
-  for(i=1;i<cols-1;i++)
+  for(i=1;i<cols;i++)
     {    
       tmp[0][i] = (4*(int)a[0][i] +
 		   2*((int)a[0][i-1] + a[1][i] + a[0][i+1])+
 		   ((int)a[1][i-1] + a[1][i+1]))/12;
       
-      tmp[rows-1][i] = (4*(int)a[rows-1][i] +
-			2*((int)a[rows-1][i-1] + a[rows-2][i] + a[rows-1][i+1])+
-			((int)a[rows-2][i-1] + a[rows-2][i+1]))/12;
+      tmp[rows][i] = (4*(int)a[rows][i] +
+			2*((int)a[rows][i-1] + a[rows-1][i] + a[rows][i+1])+
+			((int)a[rows-1][i-1] + a[rows-1][i+1]))/12;
     }
   
-  free_pixel_array(a,rows);
+  free_pixel_array(a,rows+1);
   return tmp;
 
 }
-
+*/
 
 void smoothImage( netImage *image)
 {
