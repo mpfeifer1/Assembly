@@ -22,14 +22,13 @@ static minMax get_bounds(unsigned char **a,int rows,int cols)
 typedef struct{
   minMax mm;
   unsigned char **grayimage;
-}funky_return_value;
+} funky_return_value;
 
 /* convert no grayscale, return min/max and pointer */
-static funky_return_value gray_array(unsigned char **r,
-				     unsigned char **g,
-				     unsigned char **b,
-				     int rows,
-				     int cols)
+funky_return_value
+gray_array(unsigned char **r, unsigned char **g,
+	   unsigned char **b, int rows, int cols);
+/*
 {
   int i,j;
   funky_return_value vals = {{255, 0}, NULL};
@@ -52,6 +51,7 @@ static funky_return_value gray_array(unsigned char **r,
   vals.grayimage = grayimage;
   return vals;
 }
+*/
 
 minMax grayscaleImage( netImage *image)
 {

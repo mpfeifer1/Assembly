@@ -629,6 +629,100 @@ end12:
 
 
 
+        .text
+        .globl  gray_array
+gray_array:	@@ Takes in r, g, b, rows, and cols in 1, 2, 3, and sp, returns funky return value
+        stmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+
+	mov	r4, #0			@ r4 = i = 0
+	mov	r5, #0			@ r5 = i = 0
+	ldr	r6, [sp, #36]		@ r6 = rows
+	ldr	r7, [sp, #40]		@ r7 = cols
+	mov	r8, r1			@ r8 = r
+	mov	r9, r2			@ r9 = g
+	mov	r10, r3			@ r10 = b
+
+	mov	r2, #0			@ load 0
+	mov	r1, #255		@ load 255
+	sub	sp, sp, #12		@ move stack pointer
+	str	r1, [sp, #0]		@ push 255 to stack
+	str	r2, [sp, #4]		@ push 0 to stack
+	str	r0, [sp, #8]		@ push struct to stack
+
+	mov	r0, r6			@ r0 = rows
+	mov	r1, r7			@ r1 = cols
+	bl	allocate_pixel_array	@ make new array
+	mov	r11, r0			@ r11 = grayimage
+
+loop13: cmp     r4, r6          	@ i == rows
+        beq     end13           	@ quit
+
+        mov     r5, #0          	@ j = 0
+loop14: cmp     r5, r7          	@ j == cols
+        beq     end14           	@ quit
+
+	ldr	r1, [r8, r4, lsl #2]	@ load r[i][j]
+	ldrb	r1, [r1, r5]		@ load r[i][j]
+	lsl	r0, r1, #5		@ r0 = 32r[i][j]
+	add	r0, r0, r1, lsl #4	@ r0 = 48r[i][j]
+	add	r0, r0, r1, lsl #2	@ r0 = 52[i][j]
+	add	r0, r0, r1, lsl #1	@ r0 = 54[i][j]
+	mov	r1, r0			@ move to correct register
+
+	ldr	r2, [r9, r4, lsl #2]	@ load g[i][j]
+	ldrb	r2, [r2, r5]		@ load g[i][j]
+	lsl	r0, r2, #7		@ r0 = 128g[i][j]
+	add	r0, r0, r2, lsl #5	@ r0 = 160g[i][j]
+	add	r0, r0, r2, lsl #4	@ r0 = 176g[i][j]
+	add	r0, r0, r2, lsl #3	@ r0 = 184g[i][j]
+	mov	r2, r0			@ move to correct register
+
+	ldr	r3, [r10, r4, lsl #2]	@ load b[i][j]
+	ldrb	r3, [r3, r5]		@ load b[i][j]
+	lsl	r0, r3, #4		@ r0 = 16b[i][j]
+	add	r0, r0, r3, lsl #1	@ r0 = 18b[i][j]
+	mov	r3, r0			@ move to correct register
+
+	add	r0, r1, r2		@ r+g
+	add	r0, r0, r3		@ r+g+b
+	add	r0, r0, #128		@ r+g+b+128
+	lsr	r0, #8			@ divide by 256
+	bl	saturate		@ saturate
+	ldr	r1, [r11, r4, lsl #2]	@ load gray[i]
+	strb	r0, [r1, r5]		@ store into gray[i][b]
+
+	ldr	r2, [sp, #0]		@ get min from stack
+	ldr	r3, [sp, #4]		@ get max from stack
+	cmp	r0, r2			@ compare value to min
+	strlt	r0, [sp, #0]		@ if less, put on stack
+	cmp	r0, r3			@ compare value to max
+	strgt	r0, [sp, #4]		@ if greater, put on stack
+
+        add     r5, r5, #1              @ j++
+        b       loop14                  @ to top of loop
+end14:
+        add     r4, r4, #1              @ i++
+        b       loop13                  @ to top of loop
+end13:
+
+	ldr	r0, [sp, #8]		@ r0 = struct
+	ldr	r1, [sp, #0]		@ r1 = min
+	ldr	r2, [sp, #4]		@ r2 = max
+	add	sp, sp, #12		@ fix stack pointer
+
+	lsl	r2, #8
+	orr	r1, r2, r1
+
+	str	r1, [r0]
+	str	r11, [r0, #4]
+
+        ldmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+        mov     pc, lr
+
+
+
+
+
 	.text
 	.globl divByNine
 divByNine:
