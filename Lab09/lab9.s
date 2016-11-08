@@ -23,6 +23,10 @@ str10:	.asciz	"%f\n"
 	.align	2
 str11:	.asciz	"%d\n"
 	.align	2
+str12:	.asciz	"\t\t%f\n"
+	.align	2
+str13:	.asciz	"%f"
+	.align	2
 
 lo:	.word	0
 	.word	0
@@ -92,7 +96,17 @@ loop:	vcmp.f64	d8, d9		@ compare low and high
 	tst		sp,#4		@ print left half of table
 	vmovne		r1, r2, d8
 	vmoveq		r2, r3, d8
-	ldr		r0, =str10
+	ldr		r0, =str13
+	bl		printf
+
+	vmov		r0, r1, d8	@ set up parameters
+	bl		calc		@ call calc
+	vmov		d13, r0, r1	@ use return vals
+
+	tst		sp,#4		@ print right half of table
+	vmovne		r1, r2, d13
+	vmoveq		r2, r3, d13
+	ldr		r0, =str12
 	bl		printf
 
 	vadd.f64	d8, d8, d12	@ i += step
@@ -105,3 +119,48 @@ end:
 	mov	pc, lr
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+	.text
+	.globl	calc
+calc:			@ Takes in float in r0:r1, returns float in r0:r1
+	stmfd	sp!, {lr}
+	vstmdb	sp!, {d8-d15}
+
+	vmov		d8, r0, r1	@ d8 = x 		<< X
+
+	vmul.f64	d9, d8, d8	@ d9 = x^2
+	vmul.f64	d10, d9, d8	@ d10 = x^3
+	vadd.f64	d11, d8, d8	@ d11 = 2x
+
+	vsub.f64	d10, d10, d9	@ d10 = x^3 - x^2
+	vsub.f64	d9, d10, d11	@ d9 = x^3 - x^2 - 2x 	<< NUMERATOR
+
+	mov		r0, #2		@ load 2 into d10
+	mov		r1, #0
+	vmov		d10, r0, r1
+	vcvt.f64.s32	d10, s20
+
+	mov		r0, #3		@ load 3 into d11
+	mov		r1, #0
+	vmov		d11, r0, r1
+	vcvt.f64.s32	d11, s22
+
+	mov		r0, #11		@ load 11 into d13
+	mov		r1, #0
+	vmov		d13, r0, r1
+	vcvt.f64.s32	d13, s26
+
+	vsub.f64	d12, d8, d10	@ d12 = x-2
+	vmul.f64	d12, d12, d12	@ d12 = (x-2)^2
+	vmul.f64	d12, d12, d12	@ d12 = (x-2)^4
+	vdiv.f64	d12, d12, d13	@ d12 = ((x-2)^4) / 11
+	vadd.f64	d12, d12, d11	@ d12 = ((x-2)^4) / 11 + 3 << DENOMINATOR
+
+	vdiv.f64	d9, d9, d12
+
+	vmov		r0, r1, d9	@ return float
+
+	vldmia	sp!, {d8-d15}
+	ldmfd	sp!, {lr}
+	mov	pc, lr
+
