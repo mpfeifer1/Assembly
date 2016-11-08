@@ -4,7 +4,8 @@
 
 
 /* maximize contrast (converts to grayscale if necessary */
-void contrastImage( netImage *image)
+void contrastImage( netImage *image);
+/*
 {
   int i,j;
   minMax values;
@@ -19,8 +20,7 @@ void contrastImage( netImage *image)
   for( i=0; i<image->rows; i++)
     for( j=0; j<image->cols; j++)
       image->gray.i[i][j] = 
-	saturate( (int)(scale*((int)image->gray.i[i][j] - 
-			       (int)values.min )) + .5);
+	saturate( (int)(scale*((int)image->gray.i[i][j] - (int)values.min )) + .5);
 			     
 }
-
+*/

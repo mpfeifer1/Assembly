@@ -635,7 +635,7 @@ gray_array:	@@ Takes in r, g, b, rows, and cols in 1, 2, 3, and sp, returns funk
         stmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
 
 	mov	r4, #0			@ r4 = i = 0
-	mov	r5, #0			@ r5 = i = 0
+	mov	r5, #0			@ r5 = j = 0
 	ldr	r6, [sp, #36]		@ r6 = rows
 	ldr	r7, [sp, #40]		@ r7 = cols
 	mov	r8, r1			@ r8 = r
@@ -689,7 +689,7 @@ loop14: cmp     r5, r7          	@ j == cols
 	lsr	r0, #8			@ divide by 256
 	bl	saturate		@ saturate
 	ldr	r1, [r11, r4, lsl #2]	@ load gray[i]
-	strb	r0, [r1, r5]		@ store into gray[i][b]
+	strb	r0, [r1, r5]		@ store into gray[i][j]
 
 	ldr	r2, [sp, #0]		@ get min from stack
 	ldr	r3, [sp, #4]		@ get max from stack
@@ -710,14 +710,100 @@ end13:
 	ldr	r2, [sp, #4]		@ r2 = max
 	add	sp, sp, #12		@ fix stack pointer
 
-	lsl	r2, #8
-	orr	r1, r2, r1
+	lsl	r2, #8			@ shift max left
+	orr	r1, r2, r1		@ or max and min
 
-	str	r1, [r0]
-	str	r11, [r0, #4]
+	str	r1, [r0]		@ store maxmin in struct
+	str	r11, [r0, #4]		@ store image in struct
 
         ldmfd   sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
         mov     pc, lr
+
+
+
+
+
+	.text
+	.global contrastImage
+contrastImage:	@@ takes in a netimage, doesn't return anything
+	@@ just FYI, there's a weird off-by-one error somewhere that makes diff say the files are
+	@@ different despite looking exactly the same
+	stmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+
+	mov	r4, r0			@ r4 = image
+	bl	grayscaleImage		@ r0 = values
+	mov	r5, r0			@ r5 = values
+
+	lsr	r6, r5, #8		@ r6 = max
+	mov	r0, #255		@ r0 = 225
+	and	r7, r5, r0		@ r7 = min
+
+	mov		r0, #1
+	cmp		r6, r7
+	vmoveq.f32	s16, r0		@ scale = 1
+	vcvt.f32.s32	s16, s16
+
+	movne		r8, #255	@ scale = 255
+	beq		point
+
+	sub			r9, r6, r7	@ r9 = max - min
+	vmov			s16, r8		@ s0 = 255
+	vcvt.f32.s32		s16, s16	@ convert to float
+	vmov			s18, r9		@ s2 = max - min
+	vcvt.f32.s32		s18, s18	@ convert
+	vdiv.f32		s16, s16, s18	@ scale = 255 / (max - min)	
+
+point:
+	mov	r8, #0		@ i = 0
+	mov	r9, #0		@ j = 0
+	
+	ldr	r10, [r4, #12]	@ r10 = rows
+	ldr	r11, [r4, #16]	@ r11 = cols
+	ldr	r6, [r4, #20]	@ r6 = gray
+	
+loop15:
+	cmp	r8, r10
+	bge	end15
+
+loop16:
+	cmp	r9, r11
+	bge	end16
+
+	ldr	r0, [r6, r8, lsl #2]
+	ldrb	r0, [r0, r9]		@ this should be image->gray.i[i][j]
+	sub	r0, r0, r7		@ r0 = image->gray.i[i][j] - min
+
+	vmov		s18, r0		@ move r0 into floating point
+	vcvt.f32.s32	s18, s18	@ convert
+	vmul.f32	s20, s18, s16	@ s4 = scale * (image->gray.i[i][j] - min)
+
+	mov		r1, #1		@ load 1
+	vmov		s22, r1		@ s6 = 1
+	vcvt.f32.s32	s22, s22	@ convert
+	mov		r1, #2		@ load 2
+	vmov		s24, r1		@ s8 = 2
+	vcvt.f32.s32	s24, s24	@ convert
+
+	vdiv.f32	s22, s22, s24	@ s6 = 0.5
+	vadd.f32	s20, s20, s22	@ s4 = scale * (image->gray.i[i][j] - min) + 0.5
+	vcvt.s32.f32	s20, s20	@ convert
+	vmov		r0, s20		@ r0 = that
+
+	bl	saturate		@ saturate
+
+	ldr	r1, [r6, r8, lsl #2]	@ load gray.i[i]
+	strb	r0, [r1, r9]		@ this should store the saturated pixel in gray.i[i][j]
+
+	add	r9, r9, #1		@ j++
+	b	loop16			@ to top
+end16:
+	mov	r9, #0			@ j = 0
+	add	r8, r8, #1		@ i++
+	b	loop15			@ to top
+end15:
+	ldmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, r11, lr}
+	mov	pc, lr
+
 
 
 
